@@ -1,0 +1,44 @@
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Space+Mono&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800,900&display=swap');
+
+:root {
+  --bg-base:    #1c2410;
+  --bg-deep:    #141a0c;
+  --bg-surface: #232e15;
+  --bg-light:   #f5f0e4;
+  --txt-primary:   #f5f0e4;
+  --txt-secondary: #c8bfa8;
+  --txt-muted:     #8a8070;
+  --txt-dark:      #2a3018;
+  --accent:        #a8c060;
+  --border-dark:   rgba(245,240,228,0.09);
+  --border-light:  rgba(42,48,24,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.cab { font-family: 'Cabinet Grotesk', sans-serif; }
+.dm  { font-family: 'DM Sans', sans-serif; }
+.mono{ font-family: 'Space Mono', monospace; }
+
+.fm-pill {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 13px 26px; border-radius: 100px;
+  border: 1px solid rgba(245,240,228,0.25);
+  background: transparent; color: var(--txt-primary);
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  font-weight: 500; letter-spacing: .04em;
+  cursor: pointer; text-decoration: none;
+  transition: background .3s, border-color .3s, transform .3s;
+}
+.fm-pill:hover { background: rgba(245,240,228,0.08); border-color: rgba(245,240,228,0.45); transform: translateY(-2px); }
+.fm-pill-dark  { color: var(--txt-dark); border-color: rgba(42,48,24,0.3); }
+.fm-pill-dark:hover { background: rgba(42,48,24,0.08); border-color: rgba(42,48,24,0.6); }
+.fm-pill-accent { background: var(--accent); border-color: var(--accent); color: var(--txt-dark); font-weight: 700; }
+.fm-pill-accent:hover { background: #bcd470; border-color: #bcd470; }
+.fm-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.fm-pill-accent .fm-dot { background: var(--txt-dark); }
+.fm-pill-dark .fm-dot   { background: var(--txt-dark); }
+
+@keyframes fmMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }

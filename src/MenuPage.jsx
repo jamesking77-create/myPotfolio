@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
-export function MenuPage({ onBack, onNavigate }) {
+export default function MenuPage({ onBack, onNavigate }) {
   const [pageLoaded, setPageLoaded] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
@@ -60,7 +60,7 @@ export function MenuPage({ onBack, onNavigate }) {
         }
 
         .menu-item-text {
-          font-family: 'Rostex';
+          font-family: 'Rostex', sans-serif;
           letter-spacing: 0.02em;
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -108,6 +108,13 @@ export function MenuPage({ onBack, onNavigate }) {
         .social-link:hover {
           opacity: 1;
         }
+
+        @media (max-width: 768px) {
+          .blob-bg {
+            width: 400px;
+            height: 400px;
+          }
+        }
       `}</style>
 
       <div className="h-screen w-screen relative overflow-hidden bg-[#3a3d44]">
@@ -124,9 +131,9 @@ export function MenuPage({ onBack, onNavigate }) {
 
         {/* Header */}
         <div
-          className={`absolute top-8 left-12 z-30 ${pageLoaded ? "animate-fadeIn" : "opacity-0"}`}
+          className={`absolute top-4 sm:top-8 left-6 sm:left-16 z-30 ${pageLoaded ? "animate-fadeIn" : "opacity-0"}`}
         >
-          <div className="text-white/60 text-sm tracking-wider font-light">
+          <div className="text-white/60 text-xs sm:text-sm tracking-wider font-light">
             sharlee / james asuelimen
           </div>
         </div>
@@ -134,18 +141,18 @@ export function MenuPage({ onBack, onNavigate }) {
         {/* Close Button */}
         <button
           onClick={onBack}
-          className={`absolute top-8 right-12 z-30 group text-white/60 hover:text-white transition-colors duration-300 ${
+          className={`absolute top-4 sm:top-8 right-6 sm:right-12 z-30 group text-white/60 hover:text-white transition-colors duration-300 ${
             pageLoaded ? "animate-fadeIn" : "opacity-0"
           }`}
           style={{ animationDelay: "0.1s" }}
         >
-          <X className="w-8 h-8" strokeWidth={1.5} />
+          <X className="w-6 h-6 sm:w-8 sm:h-8" strokeWidth={1.5} />
         </button>
 
         {/* Main Content */}
-        <div className="relative z-10 h-full flex items-center pl-32">
+        <div className="relative z-10 h-full flex items-center justify-center sm:justify-start px-6 sm:pl-32">
           {/* Menu Items */}
-          <div className="flex flex-col items-start space-y-2">
+          <div className="flex flex-col items-start space-y-1 sm:space-y-2">
             {menuItems.map((item, index) => (
               <button
                 key={item.id}
@@ -157,11 +164,11 @@ export function MenuPage({ onBack, onNavigate }) {
                 }`}
                 style={{ animationDelay: `${0.2 + index * 0.1}s` }}
               >
-                <div className="flex items-center gap-8">
-                  <span className="menu-number text-white/50 whitespace-nowrap">
+                <div className="flex items-center gap-4 sm:gap-8">
+                  <span className="menu-number text-white/50 whitespace-nowrap text-xs sm:text-sm">
                     {item.number}
                   </span>
-                  <span className="menu-item-text text-white text-5xl font-bold tracking-wide">
+                  <span className="menu-item-text text-white text-3xl sm:text-4xl md:text-5xl font-bold tracking-wide">
                     {item.label}
                   </span>
                 </div>
@@ -172,13 +179,17 @@ export function MenuPage({ onBack, onNavigate }) {
 
         {/* Footer */}
         <div
-          className={`absolute bottom-8 left-12 right-12 flex justify-between items-center z-20 ${
+          className={`absolute bottom-4 sm:bottom-8 left-6 right-6 sm:left-12 sm:right-12 flex justify-between items-center z-20 ${
             pageLoaded ? "animate-fadeIn" : "opacity-0"
           }`}
           style={{ animationDelay: "0.8s" }}
         >
-          <div className="social-link text-white">↗ instagram</div>
-          <div className="social-link text-white">↗ github</div>
+          <div className="social-link text-white text-xs sm:text-sm">
+            ↗ instagram
+          </div>
+          <div className="social-link text-white text-xs sm:text-sm">
+            ↗ github
+          </div>
         </div>
       </div>
     </>

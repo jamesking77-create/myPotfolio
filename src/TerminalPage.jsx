@@ -4,6 +4,7 @@ import robotpic from "./assets/robotpics.svg";
 import gitasset from "./assets/gitasset.svg";
 import assettext from "./assets/assettext.svg";
 
+
 function Terminal({ onNavigate }) {
   const terminalRef = useRef(null);
   const inputRef = useRef(null);
@@ -333,7 +334,7 @@ export default function TerminalPage({ onMenuClick, onBack }) {
         {/* Asset Text - Bottom Left */}
         <div
           className={`absolute left-16 bottom-16 z-20 ${
-            pageLoaded ? "robot-slide-up" : "opacity-0"
+            pageLoaded ? "robot-slide-up" : "opacity-0" 
           }`}
         >
           <img
