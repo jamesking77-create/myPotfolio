@@ -1,6 +1,6 @@
 // src/components/stack/StackSection.jsx
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion } from "framer-motion";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import uiimage from "../../assets/woman.png";
@@ -123,7 +123,6 @@ const featureCards = [
 
 function FeatureCard({ card, index }) {
   const [hovered, setHovered] = useState(false);
-  const imgEl = useRef();
 
   return (
     <motion.div
@@ -137,12 +136,16 @@ function FeatureCard({ card, index }) {
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      // touch toggle for mobile
+      onTouchStart={() => setHovered(true)}
+      onTouchEnd={() => setTimeout(() => setHovered(false), 600)}
       style={{
         position: "relative",
         borderRadius: 8,
         overflow: "hidden",
         background: "#1a2410",
-        minHeight: "clamp(380px,45vw,520px)",
+        // on mobile cards are full-width and shorter; desktop uses clamp
+        minHeight: "clamp(300px,40vw,520px)",
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-end",
@@ -155,7 +158,6 @@ function FeatureCard({ card, index }) {
     >
       {/* image */}
       <img
-        ref={imgEl}
         src={card.img}
         alt={card.title}
         style={{
@@ -164,13 +166,14 @@ function FeatureCard({ card, index }) {
           width: "100%",
           height: "100%",
           objectFit: "cover",
+          objectPosition: "center",
           display: "block",
           transform: hovered ? "scale(1.06)" : "scale(1)",
           transition: "transform 0.7s cubic-bezier(0.16,1,0.3,1)",
         }}
       />
 
-      {/* gradient overlay — deepens on hover */}
+      {/* gradient overlay */}
       <div
         style={{
           position: "absolute",
@@ -182,7 +185,7 @@ function FeatureCard({ card, index }) {
         }}
       />
 
-      {/* Animated corner accent */}
+      {/* corner accents */}
       <div
         style={{
           position: "absolute",
@@ -218,10 +221,10 @@ function FeatureCard({ card, index }) {
         style={{
           position: "relative",
           zIndex: 2,
-          margin: 20,
+          margin: "clamp(12px,3vw,20px)",
           background: "#f5f0e4",
           borderRadius: 4,
-          padding: "24px 28px",
+          padding: "clamp(16px,3vw,24px) clamp(16px,3vw,28px)",
         }}
       >
         <div
@@ -230,7 +233,7 @@ function FeatureCard({ card, index }) {
             fontSize: 9,
             letterSpacing: "0.4em",
             color: "rgba(42,48,24,0.4)",
-            marginBottom: 12,
+            marginBottom: 10,
           }}
         >
           {card.tag.toUpperCase()}
@@ -238,11 +241,11 @@ function FeatureCard({ card, index }) {
         <h3
           style={{
             fontFamily: "'Bebas Neue',sans-serif",
-            fontSize: "clamp(1.4rem,2.5vw,2rem)",
+            fontSize: "clamp(1.2rem,2.5vw,2rem)",
             color: "#1c2410",
             letterSpacing: "0.04em",
             lineHeight: 1.05,
-            marginBottom: 14,
+            marginBottom: 12,
           }}
         >
           {card.title}
@@ -250,18 +253,16 @@ function FeatureCard({ card, index }) {
         <p
           style={{
             fontFamily: "'DM Sans',sans-serif",
-            fontSize: 13,
-            color: "rgba(42,48,24,0.6)",
+            fontSize: "clamp(12px,1.3vw,13px)",
+            color: "rgba(42,48,24,0.65)",
             lineHeight: 1.7,
           }}
         >
           {card.body}
         </p>
-
-        {/* Hover arrow */}
         <div
           style={{
-            marginTop: 16,
+            marginTop: 14,
             display: "flex",
             alignItems: "center",
             gap: 8,
@@ -270,14 +271,7 @@ function FeatureCard({ card, index }) {
             transition: "opacity 0.3s, transform 0.3s",
           }}
         >
-          <div
-            style={{
-              width: 24,
-              height: 1,
-              background: "#4a6020",
-              transition: "width 0.3s",
-            }}
-          />
+          <div style={{ width: 24, height: 1, background: "#4a6020" }} />
           <span
             style={{
               fontFamily: "'Space Mono',monospace",
@@ -313,8 +307,8 @@ function LogoPill({ item, groupColor, index }) {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 10,
-        padding: "24px 20px",
+        gap: 8,
+        padding: "clamp(14px,2vw,24px) clamp(10px,1.5vw,20px)",
         background: hovered ? groupColor + "0a" : "#fff",
         border: hovered
           ? `1px solid ${groupColor}40`
@@ -332,10 +326,9 @@ function LogoPill({ item, groupColor, index }) {
         src={item.icon}
         alt={item.name}
         style={{
-          width: 36,
-          height: 36,
+          width: "clamp(28px,3vw,36px)",
+          height: "clamp(28px,3vw,36px)",
           objectFit: "contain",
-          filter: hovered ? "none" : "grayscale(0)",
           transform: hovered
             ? "rotate(-5deg) scale(1.1)"
             : "rotate(0) scale(1)",
@@ -370,8 +363,8 @@ function LogoPill({ item, groupColor, index }) {
       <span
         style={{
           fontFamily: "'Space Mono',monospace",
-          fontSize: 9,
-          letterSpacing: "0.2em",
+          fontSize: "clamp(7px,0.9vw,9px)",
+          letterSpacing: "0.18em",
           color: hovered ? groupColor : "rgba(42,48,24,0.55)",
           textAlign: "center",
           transition: "color 0.25s",
@@ -386,11 +379,9 @@ function LogoPill({ item, groupColor, index }) {
 export default function StackSection() {
   const secRef = useRef();
   const headerRef = useRef();
-  const headingRef = useRef();
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Section label
       gsap.fromTo(
         ".stack-label",
         { opacity: 0, x: -20 },
@@ -406,8 +397,6 @@ export default function StackSection() {
           },
         },
       );
-
-      // Heading lines
       gsap.fromTo(
         ".stack-heading-line",
         { y: "110%", opacity: 0 },
@@ -424,8 +413,6 @@ export default function StackSection() {
           },
         },
       );
-
-      // Paragraph
       gsap.fromTo(
         ".stack-para",
         { opacity: 0, y: 24 },
@@ -441,8 +428,6 @@ export default function StackSection() {
           },
         },
       );
-
-      // Group headers stagger
       gsap.fromTo(
         ".stack-group-header",
         { opacity: 0, x: -24 },
@@ -459,8 +444,6 @@ export default function StackSection() {
           },
         },
       );
-
-      // Divider lines grow
       gsap.fromTo(
         ".stack-group-line",
         { scaleX: 0, transformOrigin: "left" },
@@ -500,7 +483,10 @@ export default function StackSection() {
       {/* ── PART 1 — dark header ── */}
       <div
         ref={headerRef}
-        style={{ padding: "clamp(80px,10vh,120px) clamp(24px,6vw,72px) 64px" }}
+        style={{
+          padding:
+            "clamp(60px,10vh,120px) clamp(20px,6vw,72px) clamp(40px,6vh,64px)",
+        }}
       >
         <div
           className="stack-label"
@@ -515,7 +501,6 @@ export default function StackSection() {
           03 / Stack
         </div>
         <h2
-          ref={headingRef}
           style={{
             fontFamily: "'Bebas Neue',sans-serif",
             fontSize: "clamp(3rem,7vw,7rem)",
@@ -543,8 +528,8 @@ export default function StackSection() {
           className="stack-para"
           style={{
             fontFamily: "'DM Sans',sans-serif",
-            fontSize: 15,
-            color: "rgba(245,240,228,0.45)",
+            fontSize: "clamp(13px,1.4vw,15px)",
+            color: "rgba(245,240,228,0.5)",
             maxWidth: 480,
             lineHeight: 1.75,
           }}
@@ -555,17 +540,13 @@ export default function StackSection() {
       </div>
 
       {/* ── PART 2 — Feature cards ── */}
-      <div
-        style={{
-          padding: "0 clamp(24px,6vw,72px) 80px",
-          display: "grid",
-          gridTemplateColumns: "repeat(3,1fr)",
-          gap: 16,
-        }}
-      >
-        {featureCards.map((c, i) => (
-          <FeatureCard key={i} card={c} index={i} />
-        ))}
+      <div style={{ padding: "0 clamp(20px,6vw,72px) clamp(48px,8vh,80px)" }}>
+        {/* 3 cols on desktop → 1 col on mobile */}
+        <div className="stack-feature-grid">
+          {featureCards.map((c, i) => (
+            <FeatureCard key={i} card={c} index={i} />
+          ))}
+        </div>
       </div>
 
       {/* ── PART 3 — Light cream logo grid ── */}
@@ -576,13 +557,13 @@ export default function StackSection() {
           borderTop: "1px solid rgba(42,48,24,0.08)",
         }}
       >
-        <div style={{ padding: "clamp(64px,8vh,100px) clamp(24px,6vw,72px)" }}>
+        <div style={{ padding: "clamp(48px,8vh,100px) clamp(20px,6vw,72px)" }}>
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-end",
-              marginBottom: 64,
+              marginBottom: "clamp(36px,6vh,64px)",
               flexWrap: "wrap",
               gap: 20,
             }}
@@ -611,7 +592,7 @@ export default function StackSection() {
               transition={{ duration: 0.8, delay: 0.2 }}
               style={{
                 fontFamily: "'DM Sans',sans-serif",
-                fontSize: 14,
+                fontSize: "clamp(12px,1.3vw,14px)",
                 color: "rgba(42,48,24,0.5)",
                 maxWidth: 320,
                 lineHeight: 1.7,
@@ -624,7 +605,10 @@ export default function StackSection() {
           {stackGroups.map((group, gi) => (
             <div
               key={group.label}
-              style={{ marginBottom: gi < stackGroups.length - 1 ? 56 : 0 }}
+              style={{
+                marginBottom:
+                  gi < stackGroups.length - 1 ? "clamp(36px,6vh,56px)" : 0,
+              }}
             >
               <div
                 className="stack-group-header"
@@ -632,7 +616,7 @@ export default function StackSection() {
                   display: "flex",
                   alignItems: "center",
                   gap: 12,
-                  marginBottom: 24,
+                  marginBottom: 20,
                 }}
               >
                 <motion.div
@@ -647,6 +631,7 @@ export default function StackSection() {
                     height: 8,
                     borderRadius: "50%",
                     background: group.color,
+                    flexShrink: 0,
                   }}
                 />
                 <span
@@ -655,6 +640,7 @@ export default function StackSection() {
                     fontSize: 10,
                     letterSpacing: "0.35em",
                     color: group.color,
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {group.label.toUpperCase()}
@@ -664,13 +650,8 @@ export default function StackSection() {
                   style={{ flex: 1, height: 1, background: group.color + "25" }}
                 />
               </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill,minmax(110px,1fr))",
-                  gap: 10,
-                }}
-              >
+              {/* pills: 3 cols on mobile, auto-fill on desktop */}
+              <div className="stack-pill-grid">
                 {group.items.map((item, ii) => (
                   <LogoPill
                     key={item.name}
@@ -684,6 +665,40 @@ export default function StackSection() {
           ))}
         </div>
       </div>
+
+      {/* ── RESPONSIVE STYLES ── */}
+      <style>{`
+        /* Feature cards: 3 col → 1 col */
+        .stack-feature-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+        }
+
+        /* Logo pills: auto-fill on desktop, 3 cols on mobile */
+        .stack-pill-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+          gap: 10px;
+        }
+
+        @media (max-width: 900px) {
+          .stack-feature-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .stack-feature-grid {
+            grid-template-columns: 1fr;
+          }
+          /* tighter pill grid on small screens */
+          .stack-pill-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+          }
+        }
+      `}</style>
     </section>
   );
 }

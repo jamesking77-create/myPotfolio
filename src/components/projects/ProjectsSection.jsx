@@ -24,17 +24,19 @@ function ProjectCard({ project, index }) {
   const titleRef = useRef();
   const scanRef = useRef();
   const infoRef = useRef();
+  const hoverEffectRef = useRef(null); // ← store HoverEffect instance
   const [hovered, setHovered] = useState(false);
   const accent = ACCENTS[project.id] || "#a8c060";
   const hasHover =
     project.image && project.logoImage && project.displacementImage;
-  const isEven = index % 2 === 0; // alternates image left / right
+  const isEven = index % 2 === 0;
 
-  // HoverEffect (untouched)
+  // ── HoverEffect (web + mobile via touch) ────────────────────────────────
   useEffect(() => {
     const el = imgRef.current;
     if (!el || !hasHover) return;
-    new HoverEffect({
+
+    const fx = new HoverEffect({
       parent: el,
       intensity: 0.3,
       image1: project.image,
@@ -44,12 +46,28 @@ function ProjectCard({ project, index }) {
       ease: "power2.out",
       speed: 1.6,
     });
+    hoverEffectRef.current = fx;
+
+    // ── Touch support: tap toggles the morph ──────────────────────────────
+    let morphed = false;
+    const onTouch = () => {
+      if (!morphed) {
+        fx.next(); // morph to logo image
+      } else {
+        fx.previous(); // morph back to hero
+      }
+      morphed = !morphed;
+    };
+    el.addEventListener("touchstart", onTouch, { passive: true });
+
     return () => {
+      el.removeEventListener("touchstart", onTouch);
       if (el) el.innerHTML = "";
+      hoverEffectRef.current = null;
     };
   }, [project]);
 
-  // GSAP scroll reveal
+  // ── GSAP scroll reveal ───────────────────────────────────────────────────
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
@@ -60,39 +78,30 @@ function ProjectCard({ project, index }) {
         },
       });
 
-      // card clips in from bottom
       tl.fromTo(
         wrapRef.current,
         { clipPath: "inset(100% 0 0 0)" },
         { clipPath: "inset(0% 0 0 0)", duration: 1.1, ease: "power4.inOut" },
         0,
       );
-
-      // scan-line sweeps
       tl.fromTo(
         scanRef.current,
         { scaleX: 0, transformOrigin: "left" },
         { scaleX: 1, duration: 0.9, ease: "power3.inOut" },
         0.3,
       );
-
-      // image parallax wrapper
       tl.fromTo(
         imgParaRef.current,
         { y: 24, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.9, ease: "power3.out" },
         0.25,
       );
-
-      // info panel
       tl.fromTo(
         infoRef.current,
         { y: 36, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.85, ease: "power3.out" },
         0.4,
       );
-
-      // title lines
       if (titleRef.current) {
         const split = new SplitType(titleRef.current, { types: "lines" });
         tl.fromTo(
@@ -108,8 +117,6 @@ function ProjectCard({ project, index }) {
           0.5,
         );
       }
-
-      // tags stagger
       tl.fromTo(
         `.ptag-${project.id}`,
         { opacity: 0, y: 10, scale: 0.88 },
@@ -127,7 +134,7 @@ function ProjectCard({ project, index }) {
     return () => ctx.revert();
   }, [project.id]);
 
-  // scroll parallax on image
+  // ── scroll parallax on image ─────────────────────────────────────────────
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.to(imgParaRef.current, {
@@ -207,13 +214,12 @@ function ProjectCard({ project, index }) {
         onMouseLeave={() => setHovered(false)}
         style={{
           display: "grid",
-          // alternates: even = image left, odd = image right
-          gridTemplateColumns: isEven ? "1fr 1fr" : "1fr 1fr",
+          gridTemplateColumns: "1fr 1fr",
           minHeight: "clamp(380px,45vw,520px)",
           background: "#f5f0e4",
         }}
       >
-        {/* IMAGE PANEL */}
+        {/* ── IMAGE PANEL ── */}
         <div
           className="pcard-img-col"
           style={{
@@ -223,23 +229,35 @@ function ProjectCard({ project, index }) {
             background: project.color || "#1c2410",
           }}
         >
+          {/*
+           * imgParaRef wraps the image and provides parallax.
+           * inset: 0 keeps it flush — no extra "-10%" top overflow.
+           * The parallax yPercent: -10 supplies subtle movement without
+           * the image ever showing gaps.
+           */}
           <div
             ref={imgParaRef}
             style={{
               position: "absolute",
-              inset: "-10% 0",
+              // ← oversized so parallax travel never exposes a gap
+              top: "-10%",
+              left: 0,
+              right: 0,
+              bottom: "-10%",
               willChange: "transform",
             }}
           >
             {hasHover ? (
+              /*
+               * HoverEffect renders its own <canvas> here.
+               * width/height 100% + display:block makes the canvas
+               * fill the parent and removes the inline-block gap.
+               * object-fit is applied via the canvas style override below.
+               */
               <div
                 ref={imgRef}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  minHeight: "inherit",
-                  cursor: "crosshair",
-                }}
+                className="pcard-hover-canvas"
+                style={{ width: "100%", height: "100%", cursor: "crosshair" }}
               />
             ) : project.image ? (
               <img
@@ -248,7 +266,9 @@ function ProjectCard({ project, index }) {
                 style={{
                   width: "100%",
                   height: "100%",
-                  objectFit: "cover",
+                  objectFit: "cover", // ← fills box, no stretch
+                  objectPosition: "center",
+                  display: "block",
                   transition: "transform 0.7s cubic-bezier(0.16,1,0.3,1)",
                   transform: hovered ? "scale(1.05)" : "scale(1)",
                 }}
@@ -278,18 +298,18 @@ function ProjectCard({ project, index }) {
             )}
           </div>
 
-          {/* overlay tint */}
+          {/* overlay tint — slightly stronger for better contrast */}
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background: `linear-gradient(145deg, ${project.color}99, #0a0f0599)`,
-              opacity: 0.5,
+              background: `linear-gradient(145deg, ${project.color}bb, #0a0f05bb)`,
+              opacity: 0.55,
               pointerEvents: "none",
             }}
           />
 
-          {/* ghost index number */}
+          {/* ghost index number — much more visible */}
           <div
             style={{
               position: "absolute",
@@ -297,11 +317,14 @@ function ProjectCard({ project, index }) {
               left: 16,
               fontFamily: "'Bebas Neue',sans-serif",
               fontSize: "clamp(6rem,12vw,10rem)",
-              color: "rgba(245,240,228,0.04)",
+              // ↓ Brighter base + vivid accent on hover
+              color: hovered ? `${accent}55` : "rgba(245,240,228,0.18)",
               lineHeight: 1,
               userSelect: "none",
               transition: "color 0.4s",
-              ...(hovered ? { color: `${accent}18` } : {}),
+              // text-shadow adds readable contrast against any bg
+              textShadow: "0 2px 24px rgba(0,0,0,0.55)",
+              zIndex: 2,
             }}
           >
             {String(index + 1).padStart(2, "0")}
@@ -322,7 +345,7 @@ function ProjectCard({ project, index }) {
           />
         </div>
 
-        {/* INFO PANEL */}
+        {/* ── INFO PANEL ── */}
         <div
           ref={infoRef}
           className="pcard-info-col"
@@ -337,7 +360,6 @@ function ProjectCard({ project, index }) {
             background: "#f5f0e4",
           }}
         >
-          {/* top */}
           <div>
             {/* accent dot + label */}
             <div
@@ -363,7 +385,7 @@ function ProjectCard({ project, index }) {
                   fontFamily: "'Space Mono',monospace",
                   fontSize: 9,
                   letterSpacing: "0.35em",
-                  color: "rgba(42,48,24,0.4)",
+                  color: "rgba(42,48,24,0.55)",
                 }}
               >
                 {project.role?.toUpperCase() || "ENGINEER"}
@@ -377,6 +399,7 @@ function ProjectCard({ project, index }) {
                 style={{
                   fontFamily: "'Bebas Neue',sans-serif",
                   fontSize: "clamp(2.2rem,4.5vw,4.5rem)",
+                  // ↓ full opacity — was #1c2410 before, kept same
                   color: "#1c2410",
                   lineHeight: 0.95,
                   letterSpacing: "0.02em",
@@ -397,12 +420,13 @@ function ProjectCard({ project, index }) {
               }}
             />
 
-            {/* description */}
+            {/* description — higher contrast */}
             <p
               style={{
                 fontFamily: "'DM Sans',sans-serif",
                 fontSize: "clamp(13px,1.3vw,15px)",
-                color: "rgba(42,48,24,0.6)",
+                // ↓ 0.75 instead of 0.6 — noticeably more legible
+                color: "rgba(42,48,24,0.75)",
                 lineHeight: 1.8,
                 marginBottom: 28,
                 maxWidth: 400,
@@ -429,9 +453,10 @@ function ProjectCard({ project, index }) {
                     fontFamily: "'Space Mono',monospace",
                     fontSize: 9,
                     letterSpacing: "0.18em",
-                    color: "rgba(42,48,24,0.5)",
+                    // ↓ 0.7 instead of 0.5
+                    color: "rgba(42,48,24,0.7)",
                     padding: "5px 12px",
-                    border: "1px solid rgba(42,48,24,0.15)",
+                    border: "1px solid rgba(42,48,24,0.25)",
                     borderRadius: 100,
                   }}
                 >
@@ -441,7 +466,7 @@ function ProjectCard({ project, index }) {
             </div>
           </div>
 
-          {/* data rows — matches about section style exactly */}
+          {/* data rows */}
           <div>
             {rows.map((r, ri) => (
               <div
@@ -463,7 +488,7 @@ function ProjectCard({ project, index }) {
                     fontFamily: "'Space Mono',monospace",
                     fontSize: 9,
                     letterSpacing: "0.3em",
-                    color: "rgba(42,48,24,0.35)",
+                    color: "rgba(42,48,24,0.45)",
                   }}
                 >
                   {r.key}
@@ -472,7 +497,7 @@ function ProjectCard({ project, index }) {
                   style={{
                     fontFamily: "'DM Sans',sans-serif",
                     fontSize: 13,
-                    fontWeight: 500,
+                    fontWeight: 600,
                     color: r.key === "STATUS" ? accent : "#1c2410",
                   }}
                 >
@@ -541,9 +566,9 @@ function ProjectCard({ project, index }) {
                     fontFamily: "'Space Mono',monospace",
                     fontSize: 10,
                     letterSpacing: "0.2em",
-                    color: "rgba(42,48,24,0.4)",
+                    color: "rgba(42,48,24,0.5)",
                     padding: "10px 22px",
-                    border: "1px solid rgba(42,48,24,0.12)",
+                    border: "1px solid rgba(42,48,24,0.15)",
                     borderRadius: 100,
                     textDecoration: "none",
                     transition: "color 0.2s, border-color 0.2s",
@@ -566,7 +591,7 @@ function ProjectCard({ project, index }) {
                     fontFamily: "'Space Mono',monospace",
                     fontSize: 9,
                     letterSpacing: "0.25em",
-                    color: "rgba(42,48,24,0.25)",
+                    color: "rgba(42,48,24,0.3)",
                   }}
                 >
                   COMING SOON
@@ -588,7 +613,6 @@ export function ProjectsSection() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // label
       gsap.fromTo(
         labelRef.current,
         { opacity: 0, x: -20 },
@@ -605,7 +629,6 @@ export function ProjectsSection() {
         },
       );
 
-      // heading split
       if (headingRef.current) {
         const split = new SplitType(headingRef.current, { types: "lines" });
         gsap.fromTo(
@@ -626,7 +649,6 @@ export function ProjectsSection() {
         );
       }
 
-      // sub elements
       gsap.fromTo(
         ".proj-sec-sub",
         { opacity: 0, y: 20 },
@@ -653,17 +675,15 @@ export function ProjectsSection() {
       ref={secRef}
       style={{ background: "#f5f0e4", position: "relative" }}
     >
-      {/* top hairline */}
       <div style={{ height: 1, background: "rgba(42,48,24,0.1)" }} />
 
-      {/* ── HEADER ── same padding/structure as About ── */}
+      {/* ── HEADER ── */}
       <div
         style={{
           padding:
             "clamp(48px,8vh,96px) clamp(20px,6vw,72px) clamp(32px,5vh,64px)",
         }}
       >
-        {/* label */}
         <span
           ref={labelRef}
           className="mono"
@@ -671,7 +691,7 @@ export function ProjectsSection() {
             fontFamily: "'Space Mono',monospace",
             fontSize: 20,
             letterSpacing: "0.1em",
-            color: "rgba(42,48,24,0.35)",
+            color: "rgba(42,48,24,0.45)",
             display: "inline-block",
             marginBottom: "0.5rem",
           }}
@@ -679,7 +699,6 @@ export function ProjectsSection() {
           02 / Projects
         </span>
 
-        {/* heading */}
         <div style={{ overflow: "hidden", marginBottom: 20 }}>
           <h2
             ref={headingRef}
@@ -696,131 +715,6 @@ export function ProjectsSection() {
           </h2>
         </div>
 
-        {/* social icons row */}
-        <div
-          className="proj-sec-sub"
-          style={{
-            display: "flex",
-            gap: 16,
-            flexWrap: "wrap",
-            marginBottom: 32,
-          }}
-        >
-          {[
-            {
-              label: "GitHub",
-              href: "https://github.com/jamesking77-create/",
-              svg: (
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  width="22"
-                  height="22"
-                >
-                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-                </svg>
-              ),
-            },
-            {
-              label: "LinkedIn",
-              href: "https://www.linkedin.com/in/jamesasuelimen77/",
-              svg: (
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  width="22"
-                  height="22"
-                >
-                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-                  <rect x="2" y="9" width="4" height="12" />
-                  <circle cx="4" cy="4" r="2" />
-                </svg>
-              ),
-            },
-            {
-              label: "Behance",
-              href: "#",
-              svg: (
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  width="22"
-                  height="22"
-                >
-                  <path d="M3 6h7.5a3 3 0 0 1 0 6H3V6z" />
-                  <path d="M3 12h8.5a3.5 3.5 0 0 1 0 7H3v-7z" />
-                  <path d="M15 7h6M15.5 17c0-2.5 1.5-4 3.5-4s3.5 1.5 3.5 4h-7z" />
-                  <path d="M22 15.5c0 1.93-1.57 3.5-3.5 3.5S15 17.43 15 15.5" />
-                </svg>
-              ),
-            },
-            {
-              label: "Dribbble",
-              href: "#",
-              svg: (
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  width="22"
-                  height="22"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32" />
-                </svg>
-              ),
-            },
-          ].map(({ label, href, svg }) => (
-            <a
-              key={label}
-              href={href}
-              target="_blank"
-              rel="noreferrer"
-              title={label}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 48,
-                height: 48,
-                border: "1.5px solid rgba(42,48,24,0.25)",
-                borderRadius: 0,
-                color: "rgba(42,48,24,0.5)",
-                textDecoration: "none",
-                transition: "color 0.2s, border-color 0.2s, background 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "#1c2410";
-                e.currentTarget.style.borderColor = "#1c2410";
-                e.currentTarget.style.background = "rgba(42,48,24,0.05)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "rgba(42,48,24,0.5)";
-                e.currentTarget.style.borderColor = "rgba(42,48,24,0.25)";
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              {svg}
-            </a>
-          ))}
-        </div>
-
-        {/* meta row — project count + description */}
         <div
           className="proj-sec-sub"
           style={{
@@ -837,7 +731,7 @@ export function ProjectsSection() {
             style={{
               fontFamily: "'DM Sans',sans-serif",
               fontSize: "clamp(13px,1.3vw,15px)",
-              color: "rgba(42,48,24,0.55)",
+              color: "rgba(42,48,24,0.65)",
               lineHeight: 1.75,
               maxWidth: 440,
               margin: 0,
@@ -870,7 +764,7 @@ export function ProjectsSection() {
                 fontFamily: "'Space Mono',monospace",
                 fontSize: 9,
                 letterSpacing: "0.3em",
-                color: "rgba(42,48,24,0.35)",
+                color: "rgba(42,48,24,0.45)",
               }}
             >
               PROJECTS
@@ -879,14 +773,14 @@ export function ProjectsSection() {
         </div>
       </div>
 
-      {/* ── CARDS — full-bleed, no side padding ── */}
+      {/* ── CARDS ── */}
       <div style={{ borderTop: "1px solid rgba(42,48,24,0.1)" }}>
         {projects.map((p, i) => (
           <ProjectCard key={p.id} project={p} index={i} />
         ))}
       </div>
 
-      {/* ── BOTTOM QUOTE STRIP — matches about's dark strip ── */}
+      {/* ── BOTTOM QUOTE STRIP ── */}
       <div
         style={{
           background: "#1c2410",
@@ -970,17 +864,31 @@ export function ProjectsSection() {
 
       {/* ── RESPONSIVE ── */}
       <style>{`
+        /* Force HoverEffect canvas to fill its oversized parallax wrapper */
+        .pcard-hover-canvas,
+        .pcard-hover-canvas canvas {
+          width: 100% !important;
+          height: 100% !important;
+          display: block;
+          object-fit: cover !important;
+        }
+
         @media (max-width: 700px) {
           .pcard-grid {
             grid-template-columns: 1fr !important;
           }
           .pcard-img-col {
             order: 0 !important;
-            height: 260px;
-            min-height: 260px;
+            height: 300px;
+            min-height: 300px;
           }
-          .pcard-img-col > div {
-            inset: 0 !important;
+          /* Reset inset so image fills the fixed-height mobile cell */
+          /* On mobile reset oversized wrapper to flush fill the fixed-height cell */
+          .pcard-img-col > div:first-child {
+            top: 0 !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
           }
           .pcard-info-col {
             order: 1 !important;

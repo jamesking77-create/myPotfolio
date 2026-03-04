@@ -1,29 +1,11 @@
-/**
- * data/projects.js
- *
- * Per-project image guide:
- *
- *  image              → square hero shown LEFT on card (before hover)  — 600×600px
- *  logoImage          → appears AFTER water-hover morph                — same 600×600px
- *  displacementImage  → ripple water map — ONE file for all cards
- *                       Download: https://cdn.jsdelivr.net/gh/robin-dela/hover-effect/images/fluid.jpg
- *                       Save as: /public/images/displacement.png
- *
- * Run once:  npm install hover-effect
- */
-
-import ibloomHero from "../assets/ibloomdashboard.png";
-import bimeHero from "../assets/bimehero.svg";
-import falcon from "../assets/falcondashboard.png";
+import bimeHero from "../assets/bime.png"; // ← was bimehero.svg (SVGs ignore object-fit)
+import planning from "../assets/planning.jpg";
+import falcon from "../assets/treasury.jpg";
 import fluid from "../assets/fluid2.jpg";
-import bimelogo from "../assets/bimelogo.svg"
+import bimelogo from "../assets/bimelogo.svg";
 import falconlogo from "../assets/falconlogo.svg";
-
-
-// ── Add your logo images here once you have them ──
-// import bimeLogo     from "../assets/logos/bime-logo.png";
-// import aristackLogo from "../assets/logos/aristack-logo.png";
-// import ibloomLogo   from "../assets/logos/ibloom-logo.png";
+import ibloomlogo from "../assets/ibloomlogo.svg";
+import ibloomHero from "../assets/decoration.jpg";
 
 const DISPLACEMENT = fluid;
 
@@ -32,15 +14,12 @@ export const projects = [
     id: 1,
     title: "Bime",
     stack: "BRANDING, UI DESIGN, VISUAL IDENTITY",
-    url: null, // "https://bime.com" when live
-    githubUrl: null, // "https://github.com/yourhandle/bime"
-    linkedinUrl: null, // "https://linkedin.com/in/yourhandle"
-
-    image: bimeHero,
-    logoImage: bimelogo, // ← import bimeLogo and put it here
+    url: null,
+    githubUrl: null,
+    linkedinUrl: null,
+    image: bimeHero, // ← now a PNG — fills the box perfectly
+    logoImage: bimelogo,
     displacementImage: DISPLACEMENT,
-
-    // legacy fields kept for other sections
     client: "Bime Brand",
     role: "Brand Identity & Design",
     year: "2024",
@@ -52,16 +31,14 @@ export const projects = [
   },
   {
     id: 2,
-    title: "Aristack",
+    title: "Falcon-Treasury",
     stack: "REACT JS, NODE.JS, FINTECH, DASHBOARD",
     url: null,
-    githubUrl: null, // "https://github.com/yourhandle/aristack"
+    githubUrl: null,
     linkedinUrl: null,
-
     image: falcon,
-    logoImage: falconlogo, // ← import aristackLogo and put it here
+    logoImage: falconlogo,
     displacementImage: DISPLACEMENT,
-
     client: "Aristack Solutions Limited",
     role: "Full Stack Engineer",
     year: "2025",
@@ -78,11 +55,9 @@ export const projects = [
     url: null,
     githubUrl: null,
     linkedinUrl: null,
-
     image: ibloomHero,
-    logoImage: null, // ← import ibloomLogo and put it here
+    logoImage: ibloomlogo,
     displacementImage: DISPLACEMENT,
-
     client: "iBloom Decor Rentals",
     role: "Full Stack Engineer",
     year: "2025",
@@ -99,11 +74,9 @@ export const projects = [
     url: null,
     githubUrl: null,
     linkedinUrl: null,
-
-    image: null, // ← add your admin screenshot import
-    logoImage: null,
+    image: planning,
+    logoImage: ibloomlogo,
     displacementImage: DISPLACEMENT,
-
     client: "iBloom Decor Rentals",
     role: "Full Stack Engineer",
     year: "2025",
