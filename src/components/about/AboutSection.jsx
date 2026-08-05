@@ -321,6 +321,17 @@ const institutions = [
     initials: "HB",
     color: "#d4af37",
   },
+  {
+    name: "MIVA Open University",
+    shortName: "MIVA",
+    logo: "https://miva.edu.ng/favicon.ico",
+    bg: "#0a1128",
+    border: "#2563eb",
+    credential: "BSc Software Engineering",
+    url: "https://miva.edu.ng",
+    initials: "MV",
+    color: "#2563eb",
+  },
 ];
 
 function MobileLogoCircle({ inst, delay = 0 }) {
